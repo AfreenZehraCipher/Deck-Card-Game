@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
+    <title>Memory Match Game</title>
+    <style>
+        button.btn{ font-size: 20px; }
+        .flex-container{ display: flex; flex-wrap: nowrap; background-color: beige;
+            margin-top: 8rem; margin-bottom: 4rem; }
+        .card { background-color: #f1f1f1; width: 100px; text-align: center; height: 76px;
+            line-height: 76px; font-size: 30px; font-weight: bold; border: rgb(218, 146, 12) 2px solid;
+            margin: 1px; }
+        .hide{ text-indent: 100%; white-space: nowrap; overflow: hidden; }
+        div.card:hover{ background-color: gray; border: cadetblue 3px inset; }
+    </style>
+</head>
+<body>
+    <h1 class="text-center text-uppercase" style="margin-top: 5.5rem;">
+        deck card matching game
+    </h1>
+    <div class="flex-container mx-2 p-3 bg-primary border border-2 border-dark rounded-3" id="deck"></div>
+
+    <h1 class="text-center">
+        Turns : <span id="turncount"> 0 </span>
+    </h1>
+
+    <div class="text-center">
+        <button type="button" onclick="reset()" id="reset" class="btn btn-md btn-danger mt-4">
+            RESET
+        </button>
+    </div>
+
+    <h1 class="text-center m-4" id="print"></h1>
+</body>
+<script>
+    var cards = [1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8];
+    var count = document.getElementById('turncount');
+    var turns = 0, canvas = "", c_id = 'cd16', p_id = 'cd16';
+    var unmatched = []; // unmatched button ids
+    // canvas --> for displaying deck of card
+    // cards --> cards no in deck and total of 16
+    // c_id --> current id of button pressed
+    // p_id --> previous id of previous button pressed
+    // both ids initiated with cd16 becuase it does not exists in program
+    var printresult = document.getElementById('print');
+    cards = shuffle(cards);
+    console.log(cards);
+    var deck = document.getElementById('deck');
+    deck.innerHTML = initiateDeck(cards);    
+
+    function shuffle(array){
+        for(var i = 0; i < array.length; i++){
+            var temp = array[i];
+            var j = Math.floor(Math.random() * (i + 1));
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        return array;
+    }
+
+    function functioncanvas(cardno,index){
+        var cardID = 'cd' + index;
+        canvas +=
+            "<div onclick='exposeCard(\""+cardID+"\")' id='"+cardID+"' class='card hide'>"+cardno+"</div>";
+    }
+
+    function initiateDeck(cards){
+        canvas = "";
+        cards.forEach(functioncanvas);
+        return canvas;
+    }
+
+    function exposeCard(cardID){
+        console.log('c_id ' + c_id + ' p_id ' + p_id);
+        c_id = cardID;
+        if (unmatched.length == 2){
+            var un1 = document.getElementById(unmatched[0]);
+            var un2 = document.getElementById(unmatched[1]);
+            un1.classList.add('hide');
+            un2.classList.add('hide');
+            un1.disabled = false;
+            un2.disabled = false;
+            unmatched = [];
+            hidecard(cardID);
+        }
+        else{
+            hidecard(cardID);            
+        }
+        count.innerHTML = turns;
+    }
+
+    function hidecard(cardID){
+        if (p_id == 'cd16'){            
+            var hide_eliminate = document.getElementById(c_id);
+            if(!hide_eliminate.disabled){
+                hide_eliminate.classList.remove('hide');
+                p_id = c_id;
+                turns++;
+                p_id.disabled = true;
+            }
+        }
+        else{
+            var current = document.getElementById(c_id);
+            var previous = document.getElementById(p_id);
+            if (current != previous){
+                if(!current.disabled){
+                    if(current.innerHTML == previous.innerHTML){
+                        current.classList.remove('hide');
+                        previous.classList.remove('hide');
+                        current.disabled = true;
+                        previous.disabled = true;
+                        unmatched = [];
+                        current.style.backgroundColor = 'Green';
+                        previous.style.backgroundColor = 'Green';
+                        print();                        
+                    }
+                    else{
+                        current.disabled = true;
+                        current.classList.remove('hide');
+                        unmatched[0] = p_id;
+                        unmatched[1] = c_id;
+                    }
+                    p_id = 'cd16'
+                }
+            }
+        }
+    }
+
+    function print(){
+        var c = 0;
+        for(var i = 0; i < 16; i++){
+            const ele = document.getElementById('cd'+i);
+            if(ele.disabled){
+                c += 1;
+            }
+        }
+        if(c == 16){
+            printresult.innerHTML = 'Completed Game in ' + turns + ' turns.';
+        }
+    }
+
+    function reset(){
+        for (var i = 0; i < 16; i++){
+            const el = document.getElementById('cd'+i);
+            if (!el.classList.contains('hide')){
+                el.classList.add('hide');
+            }
+            el.style.backgroundColor = '#f1f1f1';
+        }
+        c_id = 'cd16';
+        p_id = 'cd16';
+        turns = 0;
+        unmatched = [];
+        count.innerHTML = turns;
+        cards = shuffle(cards);
+        deck.innerHTML = initiateDeck(cards);
+        printresult.innerHTML = "";
+    }
+</script>
+</html>
